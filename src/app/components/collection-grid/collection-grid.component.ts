@@ -8,11 +8,10 @@ import {
   ColDef,
   GridApi,
   ModuleRegistry,
-  ClientSideRowModelModule
+  ClientSideRowModelModule,
 } from 'ag-grid-community';
 import { AgGridAngular } from 'ag-grid-angular';
 
-// Register required module
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
 @Component({
@@ -20,7 +19,7 @@ ModuleRegistry.registerModules([ClientSideRowModelModule]);
   standalone: true,
   imports: [CommonModule, AgGridAngular],
   templateUrl: './collection-grid.component.html',
-  styleUrl: './collection-grid.component.scss'
+  styleUrl: './collection-grid.component.scss',
 })
 export class CollectionGridComponent implements OnChanges {
   @Input() collection = '';
@@ -32,11 +31,18 @@ export class CollectionGridComponent implements OnChanges {
   rowData: any[] = [];
   columnDefs: ColDef[] = [];
 
+  defaultColDef: ColDef = {
+  sortable: true,
+  filter: true,
+  resizable: true,
+  flex: 1
+};
+
   page = 1;
   pageSize = 10;
   total = 0;
 
-  sort: { field: string; order: string } | null = null;
+  sort: { field: string; order: 'asc' | 'desc' } | null = null;
   filters: { [key: string]: any } = {};
 
   constructor(private http: HttpClient) {}
@@ -56,100 +62,72 @@ export class CollectionGridComponent implements OnChanges {
   onSortChanged(event: SortChangedEvent): void {
     const api = event.api as any;
     const sortModel = api.getSortModel?.() || [];
-    this.sort = sortModel.length > 0 ? sortModel[0] : null;
-    this.page = 1;
-    this.loadData();
+   this.sort = sortModel.length > 0
+    ? { field: sortModel[0].colId, order: sortModel[0].sort }
+    : null;
+
+  this.page = 1;
+  this.loadData();
   }
 
   onFilterChanged(event: FilterChangedEvent): void {
-    const api = event.api as any;
-    this.filters = api.getFilterModel?.() || {};
-    this.page = 1;
-    this.loadData();
-  }
+  this.filters = event.api.getFilterModel?.() || {};
+  this.page = 1;
+  this.loadData();
+}
 
   loadData(): void {
     if (!this.collection) return;
 
-    this.http.post<any>(`http://localhost:3000/data/${this.collection}`, {
-      page: this.page,
-      pageSize: this.pageSize,
-      search: this.searchTerm,
-      sort: this.sort,
-      filters: this.filters
-    }).subscribe({
-      next: (res) => {
-        this.rowData = res.data || [];
-        this.total = res.total || 0;
+    this.http
+      .post<any>(`http://localhost:3000/data/${this.collection}`, {
+        page: this.page,
+        pageSize: this.pageSize,
+        search: this.searchTerm,
+        sort: this.sort,
+        filters: this.filters,
+      })
+      .subscribe({
+        next: (res) => {
+          this.rowData = res.data || [];
+          this.total = res.total || 0;
 
-        if (this.rowData.length > 0) {
-          this.columnDefs = Object.keys(this.rowData[0]).map((field) => {
-  const sampleValue = this.rowData[0][field];
+          if (this.rowData.length > 0) {
+            this.columnDefs = Object.keys(this.rowData[0]).map((field) => ({
+              field,
+              sortable: true,
+              filter: true,
+              resizable: true,
+              valueGetter: (params: any) => {
+                const value = params.data[field];
 
-  if (typeof sampleValue === 'object' && sampleValue !== null) {
-    return {
-      headerName: field,
-      field,
-      valueGetter: (params: any) => {
-        // Flatten simple objects like author.name, committer.email
-        if (sampleValue.name || sampleValue.email) {
-          return Object.entries(sampleValue)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(', ');
-        }
+                if (Array.isArray(value)) {
+                  return value.join(', ');
+                }
 
-        return JSON.stringify(sampleValue); // fallback
-      },
-      resizable: true,
-      sortable: false,
-      filter: false
-    };
-  }
+                if (typeof value === 'object' && value !== null) {
+                  return Object.entries(value)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(', ');
+                }
 
-  if (field === 'url') {
-    return {
-      headerName: 'Link',
-      field,
-      cellRenderer: (params: any) =>
-        `<a href="${params.value}" target="_blank">${params.value}</a>`,
-      resizable: true,
-      sortable: false,
-      filter: false
-    };
-  }
-
-  if (field === 'date' || field === 'createdAt' || field === 'updatedAt') {
-    return {
-      field,
-      headerName: field,
-      valueFormatter: (params: any) => new Date(params.value).toLocaleString(),
-      resizable: true,
-      sortable: true,
-      filter: true
-    };
-  }
-
-  return {
-    field,
-    sortable: true,
-    filter: true,
-    resizable: true
-  };
-});
-        } else {
+                return value;
+              },
+            }));
+          } else {
+            this.columnDefs = [];
+          }
+        },
+        error: (err) => {
+          console.error('❌ Failed to load data:', err.message);
+          this.rowData = [];
           this.columnDefs = [];
-        }
-      },
-      error: (err) => {
-        console.error('❌ Failed to load data:', err.message);
-        this.rowData = [];
-        this.columnDefs = [];
-      }
-    });
+        },
+      });
   }
 
   nextPage(): void {
-    if ((this.page * this.pageSize) < this.total) {
+    if (this.page * this.pageSize < this.total) {
       this.page++;
       this.loadData();
     }

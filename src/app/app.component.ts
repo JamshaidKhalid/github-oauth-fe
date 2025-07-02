@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IntegrationService } from './services/integration.service';
-import { ConnectCardComponent } from './components/connect-card/connect-card.component';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+
+import { IntegrationService } from './services/integration.service';
+import { ConnectCardComponent } from './components/connect-card/connect-card.component';
 import { CollectionGridComponent } from './components/collection-grid/collection-grid.component';
 
 @Component({
@@ -14,12 +17,14 @@ import { CollectionGridComponent } from './components/collection-grid/collection
   standalone: true,
   imports: [
     CommonModule,
-    ConnectCardComponent,
+    FormsModule,
     MatExpansionModule,
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatInputModule,
+    ConnectCardComponent,
     CollectionGridComponent
   ],
   templateUrl: './app.component.html',
@@ -29,19 +34,19 @@ export class AppComponent implements OnInit {
   connected = false;
   loading = true;
   syncing = false;
-
-  selectedCollection = '';
-  collections = [
+  collections: string[] = [
+    'github-integrations',
     'github-organizations',
     'org-repos',
-    'org-pulls',
     'org-commits',
+    'org-pulls',
     'org-issues',
-    'org-issues-changelogs',
-    'org-users'
+    'org-users',
+    'org-changelogs'
   ];
-
-  searchTerm = '';
+  selectedCollection: string = '';
+  searchTerm: string = '';
+  searchDebounceTimer: any;
 
   constructor(private integration: IntegrationService) {}
 
@@ -77,5 +82,19 @@ export class AppComponent implements OnInit {
         window.location.reload();
       });
     }
+  }
+
+  onCollectionChange() {
+  }
+
+  onSearchChange(term: string) {
+    clearTimeout(this.searchDebounceTimer);
+    this.searchDebounceTimer = setTimeout(() => {
+      this.searchTerm = term;
+    }, 400);
+  }
+
+  clearSearch() {
+    this.searchTerm = '';
   }
 }

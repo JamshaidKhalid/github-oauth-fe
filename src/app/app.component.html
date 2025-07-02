@@ -1,31 +1,48 @@
-<div class="container" *ngIf="!loading">
-  <mat-expansion-panel class="panel">
-    <mat-expansion-panel-header>
-      <mat-panel-title>GitHub Integration Options</mat-panel-title>
-    </mat-expansion-panel-header>
-    <div class="actions">
-      <button mat-stroked-button color="primary" (click)="resync()" [disabled]="syncing">
-        <mat-icon>sync</mat-icon> {{ syncing ? 'Syncing...' : 'Re-sync' }}
-      </button>
-      <button mat-stroked-button color="warn" (click)="remove()">
-        <mat-icon>delete</mat-icon> Remove Integration
-      </button>
-    </div>
-  </mat-expansion-panel>
+<div class="container">
+  <mat-accordion>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>GitHub Integration</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div>
+        <button mat-raised-button color="primary" (click)="resync()" [disabled]="syncing">
+          <mat-icon>sync</mat-icon>
+          {{ syncing ? 'Syncing...' : 'Re-sync Integration' }}
+        </button>
+        <button mat-raised-button color="warn" (click)="remove()">
+          <mat-icon>delete</mat-icon> Remove Integration
+        </button>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
 
-  <div *ngIf="connected; else notConnected" class="dashboard">
-    <mat-form-field appearance="fill" class="selector">
+  <div class="search-wrapper">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search</mat-label>
+      <input
+        matInput
+        placeholder="Search all fields..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+      />
+      <button mat-icon-button matSuffix *ngIf="searchTerm" (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+  </div>
+
+  <div class="collection-dropdown">
+    <mat-form-field appearance="outline" class="dropdown-field">
       <mat-label>Select Collection</mat-label>
-      <mat-select [(value)]="selectedCollection">
+      <mat-select [(value)]="selectedCollection" (selectionChange)="onCollectionChange()">
         <mat-option *ngFor="let col of collections" [value]="col">{{ col }}</mat-option>
       </mat-select>
     </mat-form-field>
-
-    <app-collection-grid *ngIf="selectedCollection" [collection]="selectedCollection" [searchTerm]="searchTerm">
-    </app-collection-grid>
   </div>
 
-  <ng-template #notConnected>
-    <app-connect-card />
-  </ng-template>
+  <app-collection-grid
+    *ngIf="selectedCollection"
+    [collection]="selectedCollection"
+    [searchTerm]="searchTerm">
+  </app-collection-grid>
 </div>

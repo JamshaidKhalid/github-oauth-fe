@@ -1,12 +1,57 @@
-:host {
-  display: block;
-  margin-top: 1rem;
+.table-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+.styled-grid {
+  --ag-border-color: #e0e0e0;
+  --ag-header-background-color: #f5f5f5;
+  --ag-header-foreground-color: #333;
+  --ag-font-size: 14px;
+  --ag-font-family: 'Roboto', sans-serif;
+  --ag-row-hover-color: #f0f0f0;
+  --ag-row-height: 48px;
+
+  .ag-header-cell-label {
+    font-weight: 600;
+    padding: 10px;
+  }
+
+  .ag-row {
+    transition: background-color 0.2s ease;
+  }
+
+  .ag-row:nth-child(even) {
+    background-color: #fcfcfc;
+  }
+
+  .ag-row:hover {
+    background-color: #f2f8ff !important;
+  }
+
+  .ag-cell {
+    padding: 10px;
+    line-height: 20px;
+  }
 }
 
 .pagination-controls {
   display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
-  max-width: 400px;
-  margin-top: 1rem;
+  gap: 2rem;
+  margin-top: 1.5rem;
+
+  button {
+    min-width: 100px;
+  }
+
+  span {
+    font-weight: 500;
+    font-size: 14px;
+  }
 }

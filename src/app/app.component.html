@@ -1,27 +1,28 @@
 <div class="container" *ngIf="!loading">
-  <div *ngIf="connected; else notConnected" class="connected">
-    <h1>Hello, World</h1>
-    <p>You’re connected to GitHub successfully.</p>
+  <mat-expansion-panel class="panel">
+    <mat-expansion-panel-header>
+      <mat-panel-title>GitHub Integration Options</mat-panel-title>
+    </mat-expansion-panel-header>
+    <div class="actions">
+      <button mat-stroked-button color="primary" (click)="resync()" [disabled]="syncing">
+        <mat-icon>sync</mat-icon> {{ syncing ? 'Syncing...' : 'Re-sync' }}
+      </button>
+      <button mat-stroked-button color="warn" (click)="remove()">
+        <mat-icon>delete</mat-icon> Remove Integration
+      </button>
+    </div>
+  </mat-expansion-panel>
 
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          GitHub Integration Options
-        </mat-panel-title>
-      </mat-expansion-panel-header>
+  <div *ngIf="connected; else notConnected" class="dashboard">
+    <mat-form-field appearance="fill" class="selector">
+      <mat-label>Select Collection</mat-label>
+      <mat-select [(value)]="selectedCollection">
+        <mat-option *ngFor="let col of collections" [value]="col">{{ col }}</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-      <div class="actions">
-        <button mat-stroked-button color="primary" (click)="resync()" [disabled]="syncing">
-          <mat-icon>sync</mat-icon>
-          {{ syncing ? 'Syncing...' : 'Re-sync Integration' }}
-        </button>
-
-        <button mat-stroked-button color="warn" (click)="remove()">
-          <mat-icon>delete</mat-icon>
-          Remove Integration
-        </button>
-      </div>
-    </mat-expansion-panel>
+    <app-collection-grid *ngIf="selectedCollection" [collection]="selectedCollection" [searchTerm]="searchTerm">
+    </app-collection-grid>
   </div>
 
   <ng-template #notConnected>

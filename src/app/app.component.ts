@@ -35,7 +35,6 @@ export class AppComponent implements OnInit {
   loading = true;
   syncing = false;
   collections: string[] = [
-    'github-integrations',
     'github-organizations',
     'org-repos',
     'org-commits',
